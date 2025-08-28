@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, Tag, Eye, Plus, Filter, ThumbsUp, ThumbsDown, Star, Clock, Play, Info, X, RotateCcw, Heart, Award } from 'lucide-react';
+import { Search, Eye, ThumbsUp, ThumbsDown, Star, X, RotateCcw, Award } from 'lucide-react';
 
 const NextFlix = () => {
   const [watchedItems, setWatchedItems] = useState([]);
@@ -20,13 +20,9 @@ const NextFlix = () => {
 
   // Load data from localStorage
   useEffect(() => {
-    console.log('Loading from localStorage...');
     const saved = localStorage.getItem('nextflix-data');
-    console.log('Saved data:', saved);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      console.log('Parsed data:', parsed);
-      setWatchedItems(parsed);
+      setWatchedItems(JSON.parse(saved));
     }
     setIsInitialized(true);
   }, []);
@@ -34,7 +30,6 @@ const NextFlix = () => {
   // Save to localStorage (only after initialization)
   useEffect(() => {
     if (isInitialized) {
-      console.log('Saving to localStorage:', watchedItems);
       localStorage.setItem('nextflix-data', JSON.stringify(watchedItems));
     }
   }, [watchedItems, isInitialized]);
@@ -46,7 +41,7 @@ const NextFlix = () => {
       return;
     }
 
-    if (TMDB_API_KEY === 'demo_key') {
+    if (TMDB_API_KEY === 'demo_key' || TMDB_API_KEY === 'your_api_key_here') {
       // Fallback to mock data if no API key
       setIsSearching(true);
       try {
@@ -65,6 +60,32 @@ const NextFlix = () => {
             genre_ids: [28, 12],
             cast: ['Ryan Gosling', 'Emma Stone', 'Ryan Reynolds', 'Margot Robbie'],
             genres: ['Action', 'Drama', 'Thriller']
+          },
+          {
+            id: Math.random(),
+            title: `${query} 2: The Sequel`,
+            media_type: 'movie',
+            poster_path: '/another-poster.jpg',
+            backdrop_path: '/another-backdrop.jpg',
+            overview: `The highly anticipated sequel to ${query}. With even more action, drama, and compelling characters that will keep you entertained from start to finish.`,
+            release_date: '2024-06-15',
+            vote_average: 7.8,
+            genre_ids: [28, 53],
+            cast: ['Chris Evans', 'Scarlett Johansson', 'Robert Downey Jr.'],
+            genres: ['Action', 'Thriller', 'Adventure']
+          },
+          {
+            id: Math.random(),
+            title: `The ${query} Chronicles`,
+            media_type: 'tv',
+            poster_path: '/series-poster.jpg',
+            backdrop_path: '/series-backdrop.jpg',
+            overview: `A captivating TV series exploring the world of ${query}. Multiple seasons of compelling storytelling with complex characters and intricate plotlines.`,
+            first_air_date: '2022-09-12',
+            vote_average: 9.1,
+            genre_ids: [18, 9648],
+            cast: ['Pedro Pascal', 'Zendaya', 'Oscar Isaac'],
+            genres: ['Drama', 'Mystery', 'Thriller']
           }
         ];
         setSearchResults(mockResults);
@@ -190,48 +211,6 @@ const NextFlix = () => {
       }
     });
 
-  const ThumbsRating = ({ rating, onRate, size = 'small' }) => {
-    const buttonSize = size === 'large' ? 'p-3' : 'p-2';
-    const iconSize = size === 'large' ? 'w-6 h-6' : size === 'medium' ? 'w-5 h-5' : 'w-4 h-4';
-    
-    return (
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => onRate && onRate('love')}
-          className={`w-12 h-12 rounded-full transition-all flex items-center justify-center ${
-            rating === 'love' 
-              ? 'bg-purple-600 text-white shadow-lg' 
-              : 'bg-gray-800/80 text-gray-400 hover:bg-purple-600 hover:text-white border border-gray-600'
-          }`}
-          title="Love this!"
-        >
-          <Award className="w-5 h-5" />
-        </button>
-        <button
-          onClick={() => onRate && onRate('up')}
-          className={`w-12 h-12 rounded-full transition-all flex items-center justify-center ${
-            rating === 'up' 
-              ? 'bg-green-600 text-white shadow-lg' 
-              : 'bg-gray-800/80 text-gray-400 hover:bg-green-600 hover:text-white border border-gray-600'
-          }`}
-          title="I like it"
-        >
-          <ThumbsUp className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => onRate && onRate('down')}
-          className={`w-12 h-12 rounded-full transition-all flex items-center justify-center ${
-            rating === 'down' 
-              ? 'bg-red-600 text-white shadow-lg' 
-              : 'bg-gray-800/80 text-gray-400 hover:bg-red-600 hover:text-white border border-gray-600'
-          }`}
-          title="Not for me"
-        >
-          <ThumbsDown className="w-4 h-4" />
-        </button>
-      </div>
-    );
-  };
 
   const MovieCard = ({ item, isHero = false }) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -592,15 +571,53 @@ const NextFlix = () => {
                   {existingItem ? (
                     <>
                       <h3 className="text-white text-lg font-semibold mb-4">Your Rating</h3>
-                      <ThumbsRating
-                        rating={existingItem.rating}
-                        onRate={(rating) => {
-                          updateRating(existingItem.id, rating);
-                          // Update the selected item state to reflect the change
-                          setSelectedItem(prev => ({ ...prev, rating }));
-                        }}
-                        size="large"
-                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            const newRating = existingItem.rating === 'love' ? null : 'love';
+                            updateRating(existingItem.id, newRating);
+                            setSelectedItem(prev => ({ ...prev, rating: newRating }));
+                          }}
+                          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                            existingItem.rating === 'love'
+                              ? 'bg-purple-600 border-purple-600 text-white'
+                              : 'bg-transparent border border-white text-white hover:bg-purple-600 hover:border-purple-600'
+                          }`}
+                          title="Love this!"
+                        >
+                          <Award className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const newRating = existingItem.rating === 'up' ? null : 'up';
+                            updateRating(existingItem.id, newRating);
+                            setSelectedItem(prev => ({ ...prev, rating: newRating }));
+                          }}
+                          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                            existingItem.rating === 'up'
+                              ? 'bg-green-600 border-green-600 text-white'
+                              : 'bg-transparent border border-white text-white hover:bg-green-600 hover:border-green-600'
+                          }`}
+                          title="I like it"
+                        >
+                          <ThumbsUp className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const newRating = existingItem.rating === 'down' ? null : 'down';
+                            updateRating(existingItem.id, newRating);
+                            setSelectedItem(prev => ({ ...prev, rating: newRating }));
+                          }}
+                          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                            existingItem.rating === 'down'
+                              ? 'bg-red-600 border-red-600 text-white'
+                              : 'bg-transparent border border-white text-white hover:bg-red-600 hover:border-red-600'
+                          }`}
+                          title="Not for me"
+                        >
+                          <ThumbsDown className="w-4 h-4" />
+                        </button>
+                      </div>
                       {existingItem.rating && (
                         <p className="text-gray-400 mt-3 text-sm">
                           {existingItem.rating === 'love' ? 'You loved this!' : 
