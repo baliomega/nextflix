@@ -2,8 +2,6 @@
 
 A personal movie and TV series tracking application built with React and Vite. Track your watched content, rate what you've seen, and discover new movies and series with a Netflix-inspired interface.
 
-![NextFlix Screenshot](https://via.placeholder.com/800x400/1a1a1a/ffffff?text=NextFlix)
-
 ## ✨ Features
 
 ### 🔍 Search & Discovery
