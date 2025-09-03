@@ -16,6 +16,21 @@ const NextFlix = () => {
   const [contentFilterEnabled, setContentFilterEnabled] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [showSearchPopup, setShowSearchPopup] = useState(false);
+  const [popupSearchTerm, setPopupSearchTerm] = useState('');
+
+  // Prevent background scrolling when search popup is open
+  useEffect(() => {
+    if (searchResults.length > 0 || isSearching || showSearchPopup) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [searchResults.length, isSearching, showSearchPopup]);
 
   // TMDB API configuration
   const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || 'demo_key';
@@ -424,14 +439,14 @@ const NextFlix = () => {
   // Debounce search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchTerm) {
-        searchTMDB(searchTerm);
+      if (popupSearchTerm) {
+        searchTMDB(popupSearchTerm);
       } else {
         setSearchResults([]);
       }
     }, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  }, [popupSearchTerm]);
 
   // Fetch cast and crew details from TMDB
   const fetchCastAndCrew = async (itemId, mediaType) => {
@@ -517,8 +532,15 @@ const NextFlix = () => {
 
   const resetSearch = () => {
     setSearchTerm('');
+    setPopupSearchTerm('');
     setSearchResults([]);
     setSelectedItem(null);
+    setShowSearchPopup(false);
+  };
+
+  const clearPopupSearch = () => {
+    setPopupSearchTerm('');
+    setSearchResults([]);
   };
 
   const resetCollectionFilters = () => {
@@ -1172,93 +1194,59 @@ const NextFlix = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Netflix-style Header */}
-      <header className="w-full bg-gradient-to-b from-black/80 to-transparent h-[300px]">
-        <div className="px-4 h-full flex items-center justify-center w-full">
-          <div className="w-full max-w-4xl mx-auto">
-          <div className="flex flex-col items-center gap-6">
-            {/* Centered Logo */}
-            <div className="flex-shrink-0">
-              <h1 className="text-4xl sm:text-5xl font-bold text-red-500 text-center">NextFlix</h1>
-            </div>
-            
-            {/* Search Section - Centered below logo */}
-            <div className="w-full max-w-2xl">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-2 w-full">
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-5 h-5 z-10" />
-                  <input
-                    type="text"
-                    placeholder="Search movies and TV series..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-black/50 border border-gray-600 text-white pl-10 pr-4 py-2 rounded-md w-full focus:border-red-500 focus:outline-none backdrop-blur-sm text-sm sm:text-base"
-                  />
+      <header className="w-full bg-gradient-to-b from-black/80 to-transparent py-12 border-b border-white/20">
+        <div className="px-4 w-full">
+          <div className="w-full max-w-7xl mx-auto">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-6">
+              {/* Left side: Logo and Search */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 flex-1">
+                {/* Left-aligned Logo */}
+                <div className="flex-shrink-0">
+                  <h1 className="text-4xl sm:text-5xl font-bold text-red-500">NextFlix</h1>
                 </div>
                 
-                {/* Reset Search Button - Only show when there's search activity */}
-                {(searchTerm || searchResults.length > 0) && (
-                  <button
-                    onClick={resetSearch}
-                    className="bg-gray-800/80 hover:bg-gray-700 border border-gray-600 text-white px-3 sm:px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-1 sm:gap-2 backdrop-blur-sm text-sm"
-                    title="Clear search"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span className="hidden sm:inline">Clear</span>
-                  </button>
-                )}
+                {/* Search Field beside title */}
+                <div className="flex-1 max-w-2xl">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-5 h-5 z-10" />
+                    <input
+                      type="text"
+                      placeholder="Search movies and TV series..."
+                      value=""
+                      readOnly
+                      onClick={() => setShowSearchPopup(true)}
+                      className="bg-black/50 border border-gray-600 text-white pl-10 pr-4 py-3 rounded-md w-full focus:border-red-500 focus:outline-none backdrop-blur-sm text-sm sm:text-base cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side: Stats */}
+              <div className="flex flex-wrap gap-2 lg:gap-3">
+                {[
+                  { label: 'Total', value: watchedItems.length, color: 'text-white' },
+                  { label: 'Movies', value: watchedItems.filter(item => item.type === 'movie').length, color: 'text-white' },
+                  { label: 'Series', value: watchedItems.filter(item => item.type === 'series').length, color: 'text-white' },
+                  { label: 'Love', value: watchedItems.filter(item => item.rating === 'love').length, color: 'text-purple-500' },
+                  { label: 'Like', value: watchedItems.filter(item => item.rating === 'up').length, color: 'text-green-500' },
+                  { label: 'Dislike', value: watchedItems.filter(item => item.rating === 'down').length, color: 'text-red-500' }
+                ].map((stat, index) => (
+                  <div key={index} className="bg-gray-900/80 px-3 py-2 rounded backdrop-blur-sm border border-gray-800 text-center min-w-[60px]">
+                    <div className={`text-lg font-bold ${stat.color}`}>{stat.value}</div>
+                    <div className="text-gray-400 text-xs leading-tight">{stat.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
           </div>
         </div>
       </header>
 
       <div>
-        {/* Search Results */}
-        {(searchResults.length > 0 || isSearching) && (
-          <section className="px-4 py-4 bg-gray-900/50">
-            <div className="max-w-7xl mx-auto">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                {isSearching ? 'Searching...' : 'Search Results'}
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
-                {isSearching ? (
-                  <div className="col-span-4 flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
-                  </div>
-                ) : (
-                  searchResults.map(item => (
-                    <SearchResultCard key={item.id} item={item} />
-                  ))
-                )}
-              </div>
-            </div>
-          </section>
-        )}
 
-        {/* Stats Row */}
-        <section className="px-4 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 max-w-3xl mx-auto">
-              {[
-                { label: 'Total Watched', value: watchedItems.length, color: 'text-white' },
-                { label: 'Movies', value: watchedItems.filter(item => item.type === 'movie').length, color: 'text-white' },
-                { label: 'TV Series', value: watchedItems.filter(item => item.type === 'series').length, color: 'text-white' },
-                { label: 'Love This!', value: watchedItems.filter(item => item.rating === 'love').length, color: 'text-purple-500' },
-                { label: 'I Like It', value: watchedItems.filter(item => item.rating === 'up').length, color: 'text-green-500' },
-                { label: 'Not For Me', value: watchedItems.filter(item => item.rating === 'down').length, color: 'text-red-500' }
-              ].map((stat, index) => (
-                <div key={index} className="bg-gray-900/80 p-2 rounded backdrop-blur-sm border border-gray-800">
-                  <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
-                  <div className="text-gray-400 text-xs leading-tight">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Main Content */}
-        <main className="px-4 pb-8">
+        <main className="px-4 pb-8 pt-12">
           <div className="max-w-7xl mx-auto">
             {watchedItems.length === 0 ? (
               <div className="text-center py-20">
@@ -1437,6 +1425,73 @@ const NextFlix = () => {
           </div>
         </main>
       </div>
+
+      {/* Search Results Popup */}
+      {(searchResults.length > 0 || isSearching || showSearchPopup) && (
+        <div 
+          className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
+          onClick={resetSearch}
+        >
+          <div 
+            className="bg-black/20 backdrop-blur-lg rounded-lg max-w-6xl w-full h-full overflow-y-auto shadow-2xl drop-shadow-2xl border border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-black/30 backdrop-blur-lg px-6 py-4 rounded-t-lg z-10 border-b border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">
+                  {isSearching ? 'Searching...' : 'Search Results'}
+                </h2>
+                <button
+                  onClick={resetSearch}
+                  className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-full"
+                  title="Close search results"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search movies and TV series..."
+                    value={popupSearchTerm}
+                    onChange={(e) => setPopupSearchTerm(e.target.value)}
+                    className="bg-black/40 backdrop-blur-sm border border-white/20 text-white pl-10 pr-4 py-2 rounded-md w-full focus:border-red-500 focus:outline-none text-sm"
+                  />
+                </div>
+                <button
+                  onClick={clearPopupSearch}
+                  className="bg-gray-800/60 hover:bg-gray-700/60 border border-white/20 text-white px-3 py-2 rounded-md transition-colors flex items-center gap-1 text-sm backdrop-blur-sm"
+                  title="Clear search"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Clear</span>
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              {isSearching ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {searchResults.map(item => (
+                    <SearchResultCard key={item.id} item={item} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">Start typing to search</h3>
+                  <p className="text-gray-400">Search for movies and TV series to add to your collection</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       {selectedItem && (

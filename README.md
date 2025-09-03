@@ -5,10 +5,12 @@ A personal movie and TV series tracking application built with React and Vite. T
 ## ✨ Features
 
 ### 🔍 Search & Discovery
-- **Smart Search**: Search for movies and TV series with debounced input (500ms delay)
-- **Mock TMDB Integration**: Demo data with realistic movie/series information
-- **Responsive Results**: Grid layout that adapts to all screen sizes
-- **Conditional Clear**: Clear button appears only when needed
+- **Modern Search Popup**: Click-to-activate search with full-screen popup overlay
+- **TMDB Integration**: Real movie/series data from The Movie Database API
+- **Glass Morphism UI**: Beautiful blurred popup with backdrop effects
+- **Smart Debouncing**: 500ms delay for optimal search performance
+- **Background Lock**: Prevents scrolling while popup is active
+- **Sticky Header**: Search controls remain accessible while browsing results
 
 ### ⭐ Rating System
 - **Three-Tier Rating**: Love This! (Award icon), I Like It (Thumbs Up), Not For Me (Thumbs Down)
@@ -27,23 +29,28 @@ A personal movie and TV series tracking application built with React and Vite. T
 - **Smart Reset**: Separate reset buttons for search and collection filters
 
 ### 🎨 User Interface
-- **Netflix-Style Design**: Dark theme with red accents
-- **Responsive Layout**: Works seamlessly on mobile, tablet, and desktop
-- **Centered Search**: Clean header with centered search field
+- **Netflix-Style Design**: Dark theme with red accents and premium styling
+- **Modern Header Layout**: Left-aligned logo, search field, and right-aligned stats
+- **Glass Morphism Effects**: Blurred backgrounds with subtle transparency
+- **Responsive Layout**: Seamless experience across mobile, tablet, and desktop
 - **Custom Dropdowns**: Styled dropdowns with custom arrows and proper spacing
-- **Hover Effects**: Smooth transitions and interactive elements
+- **Smooth Animations**: Hover effects and transitions throughout
 - **High-Resolution Images**: w1280 quality images in detail modals
+- **Visual Hierarchy**: Clean spacing and subtle border separations
 
 ### 💾 Data Persistence
 - **LocalStorage**: All ratings and data persist between sessions
 - **Automatic Sync**: Changes saved immediately
 - **Data Recovery**: Reliable data loading with fallback handling
 
-### 📊 Statistics Dashboard
-Real-time stats showing:
-- Total watched items
-- Movies vs TV series breakdown
-- Rating distribution (Love/Like/Dislike counts)
+### 📊 Header Statistics
+Integrated stats in the top navigation showing:
+- **Total**: Complete count of watched items
+- **Movies**: Movie count with white styling
+- **Series**: TV series count with white styling  
+- **Love**: Purple-colored count of loved content
+- **Like**: Green-colored count of liked content
+- **Dislike**: Red-colored count of disliked content
 
 ## 🛠️ Tech Stack
 
@@ -72,13 +79,24 @@ Real-time stats showing:
    npm install
    ```
 
-3. **Start development server**
+3. **Set up TMDB API (Required for real data)**
+   - Get an API key from [The Movie Database](https://www.themoviedb.org/settings/api)
+   - Copy `.env.example` to `.env`:
+     ```bash
+     cp .env.example .env
+     ```
+   - Add your API key to `.env`:
+     ```
+     VITE_TMDB_API_KEY=your_actual_api_key_here
+     ```
+
+4. **Start development server**
    ```bash
    npm run dev
    ```
 
-4. **Open in browser**
-   Navigate to `http://localhost:5173`
+5. **Open in browser**
+   Navigate to `http://localhost:5173/nextflix/`
 
 ### Available Scripts
 
@@ -90,10 +108,12 @@ Real-time stats showing:
 ## 🎯 Usage
 
 ### Adding Movies/Series
-1. Use the search bar to find movies or TV series
-2. Click on any search result to view details
-3. Rate the content using the three rating options
-4. Your rated content automatically appears in "Your Collection"
+1. Click the search field in the header to open the search popup
+2. Type in the popup search field to find movies or TV series
+3. Browse results in the beautiful glass morphism popup
+4. Click on any result to view detailed information
+5. Rate the content using the three rating options
+6. Your rated content automatically appears in "Your Collection"
 
 ### Managing Your Collection
 - **Filter**: Use the dropdown filters to narrow down your collection
@@ -107,15 +127,17 @@ Real-time stats showing:
 
 ## 🔧 Configuration
 
-### TMDB API (Optional)
-To use real TMDB data instead of mock data:
+### TMDB API (Required)
+The app requires a TMDB API key to fetch real movie/TV data:
 
-1. Get an API key from [The Movie Database](https://www.themoviedb.org/settings/api)
-2. Create a `.env.local` file:
+1. **Get API Key**: Register at [The Movie Database](https://www.themoviedb.org/settings/api)
+2. **Configure**: Add your key to the `.env` file:
    ```
-   VITE_TMDB_API_KEY=your_api_key_here
+   VITE_TMDB_API_KEY=your_actual_api_key_here
    ```
-3. Restart the development server
+3. **Restart**: Restart the development server to apply changes
+
+**Note**: Without a valid API key, the app will use fallback mock data.
 
 ### Data Storage
 - Data is stored in browser's localStorage under the key `nextflix-data`
@@ -139,16 +161,24 @@ NextFlix is fully responsive and optimized for:
 
 ## 🎨 Design System
 
+### Layout
+- **Header**: Modern three-section layout (Logo | Search | Stats)
+- **Spacing**: Generous padding and margins throughout
+- **Borders**: Subtle 20% opacity white separators
+- **Glass Morphism**: Blurred backgrounds with backdrop filters
+
 ### Colors
 - **Primary**: Netflix Red (`#dc2626`)
 - **Background**: Pure Black (`#000000`)
-- **Cards**: Dark Gray (`#1f2937`)
-- **Text**: White and Gray variants
+- **Glass Elements**: Translucent black with blur effects
+- **Stats Colors**: Purple (Love), Green (Like), Red (Dislike)
+- **Text**: White and Gray variants with proper contrast
 
 ### Typography
-- **Headings**: Bold, high contrast
-- **Body**: Clean, readable sans-serif
+- **Logo**: Large, bold Netflix-style branding
+- **Headers**: Clean hierarchy with proper spacing
 - **Interactive**: Consistent sizing and spacing
+- **Stats**: Compact, readable number display
 
 ## 📄 License
 
