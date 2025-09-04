@@ -21,14 +21,33 @@ const NextFlix = () => {
 
   // Prevent background scrolling when search popup is open
   useEffect(() => {
-    if (searchResults.length > 0 || isSearching || showSearchPopup) {
+    const isPopupOpen = searchResults.length > 0 || isSearching || showSearchPopup;
+    
+    if (isPopupOpen) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      // Restore scroll position
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
     }
     
     return () => {
-      document.body.style.overflow = 'unset';
+      // Cleanup on unmount
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
     };
   }, [searchResults.length, isSearching, showSearchPopup]);
 
@@ -1436,7 +1455,7 @@ const NextFlix = () => {
             className="bg-black/20 backdrop-blur-lg rounded-lg max-w-6xl w-full h-full overflow-y-auto shadow-2xl drop-shadow-2xl border border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-black/30 backdrop-blur-lg px-6 py-4 rounded-t-lg z-10 border-b border-white/10">
+            <div className="sticky top-0 bg-gray-900 px-6 py-4 rounded-t-lg z-20 border-b border-white/10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-white">
                   {isSearching ? 'Searching...' : 'Search Results'}
@@ -1451,7 +1470,7 @@ const NextFlix = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4 z-10" />
                   <input
                     type="text"
                     placeholder="Search movies and TV series..."
